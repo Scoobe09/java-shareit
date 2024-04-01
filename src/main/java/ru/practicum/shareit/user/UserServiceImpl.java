@@ -20,8 +20,7 @@ public class UserServiceImpl implements UserService {
     public UserDto createUser(UserDto userDto) {
         log.info("Добавление нового пользователя с адресом электронной почты: {}", userDto.getEmail());
         checkEmail(userDto);
-        log.info("Пользователь с адресом электронной почты: {} успешно добавлен с идентификатором: {}", mapper.toDTO(userDao.createUser(mapper.toModel(userDto))).getEmail(),
-                mapper.toDTO(userDao.createUser(mapper.toModel(userDto))).getId());
+
         return mapper.toDTO(userDao.createUser(mapper.toModel(userDto)));
     }
 
