@@ -11,7 +11,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/items")
 public class ItemController {
-    
     private final ItemService itemService;
 
     @PostMapping
