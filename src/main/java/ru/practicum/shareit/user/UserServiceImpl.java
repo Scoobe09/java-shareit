@@ -19,7 +19,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto createUser(UserDto userDto) {
         log.info("Добавление нового пользователя с адресом электронной почты: {}", userDto.getEmail());
-        checkEmail(userDto);
 
         return mapper.toDTO(userDao.createUser(mapper.toModel(userDto)));
     }
@@ -31,7 +30,7 @@ public class UserServiceImpl implements UserService {
 
         UserDto userDtoFromDB = mapper.toDTO(userDao.findById(id));
         if (userDtoFromDB == null) {
-            throw new InvalidIdException("Нмбыз", HttpStatus.NOT_FOUND);
+            throw new InvalidIdException("Такого пользователя не существует", HttpStatus.NOT_FOUND);
         }
         userDto.setId(id);
         if (userDto.getName() == null) {
@@ -42,11 +41,12 @@ public class UserServiceImpl implements UserService {
             userDto.setEmail(userDtoFromDB.getEmail());
         }
 
-        checkEmailInDB(userDto);
         userDao.deleteEmail(userDtoFromDB.getEmail());
 
+        UserDto newUser = mapper.toDTO(userDao.updateUser(mapper.toModel(userDto)));
+
         log.info("Пользователь с идентификатором: {} успешно обновлен", userDto.getId());
-        return mapper.toDTO(userDao.updateUser(mapper.toModel(userDto)));
+        return newUser;
     }
 
     @Override
@@ -57,8 +57,8 @@ public class UserServiceImpl implements UserService {
         if (!userDao.existsById(id)) {
             throw new InvalidIdException("Не удалось найти пользователя", HttpStatus.NOT_FOUND);
         }
-        log.info("Пользователь с идентификатором: {} успешно удален.", id);
         userDao.deleteById(id);
+        log.info("Пользователь с идентификатором: {} успешно удален.", id);
     }
 
     @Override
@@ -66,42 +66,28 @@ public class UserServiceImpl implements UserService {
 
         log.info("Получение пользователя по идентификатору: {}", id);
 
-        if (userDao.existsById(id)) {
-            log.info("Пользователь получен с идентификатором: {}", id);
-            return mapper.toDTO(userDao.findById(id));
+        if (id == null) {
+            throw new InvalidIdException("Не удалось найти пользователя", HttpStatus.NOT_FOUND);
         }
-        throw new InvalidIdException("Не удалось найти пользователя", HttpStatus.NOT_FOUND);
+        UserDto newUser = mapper.toDTO(userDao.findById(id));
+        log.info("Пользователь получен с идентификатором: {}", id);
+        return newUser;
     }
 
     @Override
     public List<UserDto> findAllUsers() {
 
         log.info("Получение всех пользователей");
+
+        List<UserDto> newList = mapper.toDtoList(userDao.findAllUsers());
         log.info("Пользователи получены");
 
-        return mapper.toDtoList(userDao.findAllUsers());
+        return newList;
     }
 
     @Override
     public boolean existsById(Integer id) {
         log.info("Проверка существования пользователя с идентификатором: {}. Существует: {}", id, userDao.existsById(id));
         return userDao.existsById(id);
-    }
-
-    private void checkEmail(UserDto userDto) {
-
-        if (userDao.existsByEmail(userDto.getEmail()) != null) {
-            throw new InvalidIdException("Емайл уже существует", HttpStatus.CONFLICT);
-        }
-    }
-
-    private void checkEmailInDB(UserDto userDto) {
-
-        Integer id1 = userDao.existsByEmail(userDto.getEmail());
-        if (id1 != null) {
-            if (!id1.equals(userDto.getId())) {
-                throw new InvalidIdException("Емайл уже существует", HttpStatus.CONFLICT);
-            }
-        }
     }
 }

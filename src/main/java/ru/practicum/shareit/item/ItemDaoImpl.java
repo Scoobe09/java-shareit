@@ -1,6 +1,8 @@
 package ru.practicum.shareit.item;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
+import ru.practicum.shareit.exceptions.InvalidIdException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,8 +12,8 @@ import java.util.stream.Collectors;
 @Repository
 public class ItemDaoImpl implements ItemDao {
 
-    public static final HashMap<Integer, Item> items = new HashMap<>();
-    private Integer id1 = 0;
+    private final HashMap<Integer, Item> items = new HashMap<>();
+    private int id1 = 0;
 
     @Override
     public Item createItem(Item item) {
@@ -28,6 +30,9 @@ public class ItemDaoImpl implements ItemDao {
 
     @Override
     public Item getItemById(Integer id) {
+        if (!items.containsKey(id)) {
+            throw new InvalidIdException("Нет элемента с данным ID", HttpStatus.NOT_FOUND);
+        }
         return items.get(id);
     }
 
@@ -42,16 +47,11 @@ public class ItemDaoImpl implements ItemDao {
     public List<Item> findAllByNameOrDescription(String text) {
         List<Item> items1 = new ArrayList<>();
         for (Item item : items.values()) {
-            if (item.getName().toLowerCase().contains(text) || item.getDescription().toLowerCase().contains(text)
+            if ((item.getName().toLowerCase().contains(text) || item.getDescription().toLowerCase().contains(text))
                     && item.getAvailable()) {
                 items1.add(item);
             }
         }
         return items1;
-    }
-
-    @Override
-    public boolean existsById(Integer id) {
-        return items.containsKey(id);
     }
 }

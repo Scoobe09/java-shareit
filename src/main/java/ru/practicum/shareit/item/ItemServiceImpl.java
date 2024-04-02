@@ -33,9 +33,11 @@ public class ItemServiceImpl implements ItemService {
         }
         itemDto.setOwner(userDto);
 
+        ItemDto newItem = mapper.toDto(itemDao.createItem(mapper.toModel(itemDto)));
+
         log.info("Элемент с идентификатором: {} успешно добавлен", itemDto.getId());
 
-        return mapper.toDto(itemDao.createItem(mapper.toModel(itemDto)));
+        return newItem;
     }
 
     @Override
@@ -64,8 +66,10 @@ public class ItemServiceImpl implements ItemService {
             itemDto.setDescription(itemDtoFromDB.getDescription());
         }
 
+        ItemDto newItem = mapper.toDto(itemDao.updateItem(mapper.toModel(itemDto)));
+
         log.info("Элемент с идентификатором: {} успешно обновлен.", itemId);
-        return mapper.toDto(itemDao.updateItem(mapper.toModel(itemDto)));
+        return newItem;
     }
 
     @Override
@@ -73,11 +77,14 @@ public class ItemServiceImpl implements ItemService {
 
         log.info("Получение элемента по идентификатору: {}", id);
 
-        if (itemDao.existsById(id)) {
-            log.info("Элемент получен с идентификатором: {}", id);
-            return mapper.toDto(itemDao.getItemById(id));
+        if (id == null) {
+            throw new InvalidIdException("Такого идентификатора не существует", HttpStatus.NOT_FOUND);
         }
-        throw new InvalidIdException("Не удалось найти предмет", HttpStatus.NOT_FOUND);
+
+        ItemDto newItem = mapper.toDto(itemDao.getItemById(id));
+
+        log.info("Элемент получен с идентификатором: {}", id);
+        return newItem;
     }
 
     @Override
@@ -85,10 +92,16 @@ public class ItemServiceImpl implements ItemService {
 
         log.info("Получение элементов для идентификатора пользователя: {}", userId);
 
-        isExistUser(userId);
+
+        if (userId == null) {
+            throw new InvalidIdException("Такого пользователя не существует", HttpStatus.NOT_FOUND);
+        }
+
+
+        List<ItemDto> newList = mapper.toListDto(itemDao.findAllByOwnerId(userId));
 
         log.info("Полученны элементы для идентификатора пользователя: {}", userId);
-        return mapper.toListDto(itemDao.findAllByOwnerId(userId));
+        return newList;
     }
 
     @Override
@@ -98,14 +111,9 @@ public class ItemServiceImpl implements ItemService {
             return new ArrayList<>();
         }
 
+        List<ItemDto> newList = mapper.toListDto(itemDao.findAllByNameOrDescription(text.toLowerCase()));
+
         log.info("Получены элементы по названию или совпадению описания: {}", text);
-        return mapper.toListDto(itemDao.findAllByNameOrDescription(text.toLowerCase()));
-    }
-
-    private void isExistUser(Integer id) {
-
-        if (!userDao.existsById(id)) {
-            throw new InvalidIdException("Такого пользователя не существует", HttpStatus.NOT_FOUND);
-        }
+        return newList;
     }
 }

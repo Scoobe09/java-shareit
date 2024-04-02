@@ -12,6 +12,4 @@ public interface ItemDao {
     List<Item> findAllByOwnerId(Integer userId);
 
     List<Item> findAllByNameOrDescription(String text);
-
-    boolean existsById(Integer id);
 }
