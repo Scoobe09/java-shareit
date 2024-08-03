@@ -5,7 +5,7 @@ services:
     image: postgres
     environment:
       POSTGRES_DB: "shareit"
-      POSTGRES_USER: "Faruh"
+      POSTGRES_USER: "Scoobe"
       POSTGRES_PASSWORD: "iamroot"
     ports:
       - "5432:5432"
